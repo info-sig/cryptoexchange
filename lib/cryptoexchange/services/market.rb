@@ -8,7 +8,7 @@ module Cryptoexchange
       end
 
       def fetch(endpoint)
-        LruTtlCache.ticker_cache.getset(endpoint) do
+        Cryptoexchange::LruTtlCache.ticker_cache.getset(endpoint) do
           begin
             response = http_get(endpoint)
             if response.code == 200
