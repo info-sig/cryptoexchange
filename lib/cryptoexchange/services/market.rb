@@ -7,14 +7,13 @@ module Cryptoexchange
         end
       end
 
-      def fetch(endpoint, ticker_ttl = 10)
-        if @tickers && @tickers_last_change && @tickers_last_change > Time.now - ticker_ttl
-          return @tickers
-        end
+      def initialize options = {}
+        @ticker_cache = options[:ticker_cache] || LruTtlCache.ticker_cache
+      end
 
-        @tickers =
+      def fetch(endpoint, ticker_ttl = 10)
+        @ticker_cache.getset(endpoint) do
           begin
-            @tickers_last_change = Time.now
             response = http_get(endpoint)
             if response.code == 200
               response.parse :json
@@ -32,6 +31,7 @@ module Cryptoexchange
           rescue TypeError => e
             raise Cryptoexchange::TypeFormatError, { error: e, response: response }
           end
+        end
       end
 
       private

@@ -1,7 +1,7 @@
 module Cryptoexchange
   class Client
     def initialize(ticker_ttl: 3)
-      LruTtlCache.ticker_cache(ticker_ttl)
+      @ticker_cache = LruTtlCache.ticker_cache(ticker_ttl)
     end
 
     def pairs(exchange)
@@ -15,7 +15,7 @@ module Cryptoexchange
       exchange = market_pair.market
       market_classname = "Cryptoexchange::Exchanges::#{StringHelper.camelize(exchange)}::Services::Market"
       market_class = Object.const_get(market_classname)
-      market = market_class.new
+      market = market_class.new ticker_cache: @ticker_cache
 
       if market_class.supports_individual_ticker_query?
         market.fetch(market_pair)
@@ -57,7 +57,7 @@ module Cryptoexchange
       exchange = market_pair.market
       market_classname = "Cryptoexchange::Exchanges::#{StringHelper.camelize(exchange)}::Services::OrderBook"
       market_class = Object.const_get(market_classname)
-      order_book = market_class.new
+      order_book = market_class.new ticker_cache: @ticker_cache
 
       if market_class.supports_individual_ticker_query?
         order_book.fetch(market_pair)
@@ -74,7 +74,7 @@ module Cryptoexchange
       exchange = market_pair.market
       market_classname = "Cryptoexchange::Exchanges::#{StringHelper.camelize(exchange)}::Services::Trades"
       market_class = Object.const_get(market_classname)
-      trades = market_class.new
+      trades = market_class.new ticker_cache: @ticker_cache
       trades.fetch(market_pair)
     end
   end
